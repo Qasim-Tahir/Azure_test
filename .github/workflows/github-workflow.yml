@@ -35,10 +35,11 @@ jobs:
 
       - name: Validate Bicep files
         run: |
-          az deployment sub validate \
-            --location eastus \
+          az deployment group validate \
+            --resource-group ${{ secrets.AZURE_RG }} \
             --template-file main.bicep \
             --parameters main.parameters.json
+        
 
   deploy:
     needs: validate
