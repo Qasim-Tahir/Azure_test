@@ -1,9 +1,10 @@
 param location string = 'eastus'
 param adminUsername string
+@secure()
 param adminPassword string // No @secure() here
 
 // VNET1
-module vnet1 'vnet.bicep' = {
+module vnet1 'modules/vnet.bicep' = {
   name: 'vnet1Module'
   params: {
     name: 'vnet1'
@@ -14,7 +15,7 @@ module vnet1 'vnet.bicep' = {
   }
 }
 
-module vnet2 'vnet.bicep' = {
+module vnet2 'modules/vnet.bicep' = {
   name: 'vnet2Module'
   params: {
     name: 'vnet2'
