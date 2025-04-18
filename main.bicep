@@ -14,25 +14,33 @@ param vnet1Name string = 'vnet1'
 @description('Name for the second virtual network')
 param vnet2Name string = 'vnet2'
 
+param vnet1Prefix string = '10.0.0.0/16'
+param vnet1InfraPrefix string = '10.0.1.0/24'
+param vnet1StoragePrefix string = '10.0.2.0/24'
+
+
 module vnet1 'modules/vnet.bicep' = {
   name: 'vnet1Deploy'
   params: {
+    name: vnet1Name
     location: location
-    vnetName: vnet1Name
-    adminUsername: adminUsername
-    adminPassword: adminPassword
+    addressPrefix: '10.0.0.0/16'
+    infraSubnetPrefix: '10.0.1.0/24'
+    storageSubnetPrefix: '10.0.2.0/24'
   }
 }
 
 module vnet2 'modules/vnet.bicep' = {
   name: 'vnet2Deploy'
   params: {
+    name: vnet2Name
     location: location
-    vnetName: vnet2Name
-    adminUsername: adminUsername
-    adminPassword: adminPassword
+    addressPrefix: '10.1.0.0/16'
+    infraSubnetPrefix: '10.1.1.0/24'
+    storageSubnetPrefix: '10.1.2.0/24'
   }
 }
+
 
 resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
   name: '${vnet1Name}/vnet1-to-vnet2'
