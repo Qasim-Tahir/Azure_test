@@ -30,7 +30,6 @@ module vnet2 'modules/vnet.bicep' = {
 // Peering — use correct parent reference instead of scope
 resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
   name: 'vnet1/vnet1-to-vnet2'
-  location: location
   properties: {
     remoteVirtualNetwork: {
       id: vnet2.outputs.vnetId
@@ -41,7 +40,6 @@ resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
 
 resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
   name: 'vnet2/vnet2-to-vnet1'
-  location: location
   properties: {
     remoteVirtualNetwork: {
       id: vnet1.outputs.vnetId
@@ -49,6 +47,7 @@ resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
     allowVirtualNetworkAccess: true
   }
 }
+
 
 
 
