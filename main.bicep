@@ -101,7 +101,7 @@ module storageModule 'storage.bicep' = {
 
 // Deploy the Monitoring Module
 // Deploy the Monitoring Module
-module monitoringModule 'monitor.bicep' = {
+module monitoringModule 'monitoring.bicep' = {
   name: 'monitoringDeployment'
   params: {
     location: location
