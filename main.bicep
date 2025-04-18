@@ -27,15 +27,17 @@ module vnet2 'modules/vnet.bicep' = {
   }
 }
 
-// Peering — use correct parent reference instead of scope
+// Peering from vnet1 to vnet2
 resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet1-to-vnet2'
-  scope: resourceGroup() // 👈 Optional, depending on context
+  name: '${vnet1.outputs.vnetName}/vnet1-to-vnet2'
   properties: {
     remoteVirtualNetwork: {
       id: vnet2.outputs.vnetId
     }
     allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
   }
   dependsOn: [
     vnet1
@@ -43,21 +45,24 @@ resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
   ]
 }
 
-
+// Peering from vnet2 to vnet1
 resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet2-to-vnet1'
-  scope: resourceGroup() // 👈 Optional, depending on context
+  name: '${vnet2.outputs.vnetName}/vnet2-to-vnet1'
   properties: {
     remoteVirtualNetwork: {
       id: vnet1.outputs.vnetId
     }
     allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
   }
   dependsOn: [
     vnet1
     vnet2
   ]
 }
+
 
 
 
