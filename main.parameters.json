@@ -35,7 +35,7 @@
       "adminPassword": {
         "reference": {
           "keyVault": {
-            "id": "/subscriptions/{subscription-id}/resourceGroups/{rg-name}/providers/Microsoft.KeyVault/vaults/{keyvault-name}"
+            "id": "/subscriptions/bf93058d-40eb-487b-85eb-6d66bd0ed4e1/resourceGroups/Cloud_Computing/providers/Microsoft.KeyVault/vaults/{keyvault-name}"
           },
           "secretName": "VMAdminPassword"
         }
