@@ -14,19 +14,25 @@ param vnet1Name string = 'vnet1'
 @description('Name for the second virtual network')
 param vnet2Name string = 'vnet2'
 
+@description('VNet1 address space and subnets')
 param vnet1Prefix string = '10.0.0.0/16'
 param vnet1InfraPrefix string = '10.0.1.0/24'
 param vnet1StoragePrefix string = '10.0.2.0/24'
 
+@description('VNet2 address space and subnets')
+param vnet2Prefix string = '10.1.0.0/16'
+param vnet2InfraPrefix string = '10.1.1.0/24'
+param vnet2StoragePrefix string = '10.1.2.0/24'
 
+// Virtual Networks
 module vnet1 'modules/vnet.bicep' = {
   name: 'vnet1Deploy'
   params: {
     name: vnet1Name
     location: location
-    addressPrefix: '10.0.0.0/16'
-    infraSubnetPrefix: '10.0.1.0/24'
-    storageSubnetPrefix: '10.0.2.0/24'
+    addressPrefix: vnet1Prefix
+    infraSubnetPrefix: vnet1InfraPrefix
+    storageSubnetPrefix: vnet1StoragePrefix
   }
 }
 
@@ -35,13 +41,13 @@ module vnet2 'modules/vnet.bicep' = {
   params: {
     name: vnet2Name
     location: location
-    addressPrefix: '10.1.0.0/16'
-    infraSubnetPrefix: '10.1.1.0/24'
-    storageSubnetPrefix: '10.1.2.0/24'
+    addressPrefix: vnet2Prefix
+    infraSubnetPrefix: vnet2InfraPrefix
+    storageSubnetPrefix: vnet2StoragePrefix
   }
 }
 
-
+// VNet Peering
 resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
   name: '${vnet1Name}/vnet1-to-vnet2'
   properties: {
@@ -53,10 +59,6 @@ resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
     allowGatewayTransit: false
     useRemoteGateways: false
   }
-  dependsOn: [
-    vnet1
-    vnet2
-  ]
 }
 
 resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
@@ -70,17 +72,7 @@ resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
     allowGatewayTransit: false
     useRemoteGateways: false
   }
-  dependsOn: [
-    vnet1
-    vnet2
-  ]
 }
-
-
-
-
-
-
 
 // VMs
 module vm1 'modules/vm.bicep' = {
