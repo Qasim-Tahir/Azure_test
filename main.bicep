@@ -1,35 +1,41 @@
+@description('Location for all resources')
 param location string = 'eastus'
+
+@description('Username for the VM admin')
 param adminUsername string
 
+@description('Password for the VM admin')
 @secure()
-param adminPassword string // ✅ Now marked as secure
+param adminPassword string
 
-// VNET1
-module vnet1 'modules/vnet.bicep' = {
-  name: 'vnet1Module'
+@description('Name for the first virtual network')
+param vnet1Name string = 'vnet1'
+
+@description('Name for the second virtual network')
+param vnet2Name string = 'vnet2'
+
+module vnet1 'vnet.bicep' = {
+  name: 'vnet1Deploy'
   params: {
-    name: 'vnet1'
     location: location
-    addressPrefix: '10.0.0.0/16'
-    infraSubnetPrefix: '10.0.1.0/24'
-    storageSubnetPrefix: '10.0.2.0/24'
+    vnetName: vnet1Name
+    adminUsername: adminUsername
+    adminPassword: adminPassword
   }
 }
 
-module vnet2 'modules/vnet.bicep' = {
-  name: 'vnet2Module'
+module vnet2 'vnet.bicep' = {
+  name: 'vnet2Deploy'
   params: {
-    name: 'vnet2'
     location: location
-    addressPrefix: '10.1.0.0/16'
-    infraSubnetPrefix: '10.1.1.0/24'
-    storageSubnetPrefix: '10.1.2.0/24'
+    vnetName: vnet2Name
+    adminUsername: adminUsername
+    adminPassword: adminPassword
   }
 }
 
-// Peering from vnet1 to vnet2
 resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: '${vnet1.outputs.vnetName}/vnet1-to-vnet2'
+  name: '${vnet1Name}/vnet1-to-vnet2'
   properties: {
     remoteVirtualNetwork: {
       id: vnet2.outputs.vnetId
@@ -45,9 +51,8 @@ resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
   ]
 }
 
-// Peering from vnet2 to vnet1
 resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: '${vnet2.outputs.vnetName}/vnet2-to-vnet1'
+  name: '${vnet2Name}/vnet2-to-vnet1'
   properties: {
     remoteVirtualNetwork: {
       id: vnet1.outputs.vnetId
@@ -62,6 +67,7 @@ resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
     vnet2
   ]
 }
+
 
 
 
