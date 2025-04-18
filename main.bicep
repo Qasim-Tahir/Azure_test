@@ -14,7 +14,7 @@ param vnet1Name string = 'vnet1'
 @description('Name for the second virtual network')
 param vnet2Name string = 'vnet2'
 
-module vnet1 'vnet.bicep' = {
+module vnet1 'modules/vnet.bicep' = {
   name: 'vnet1Deploy'
   params: {
     location: location
@@ -24,7 +24,7 @@ module vnet1 'vnet.bicep' = {
   }
 }
 
-module vnet2 'vnet.bicep' = {
+module vnet2 'modules/vnet.bicep' = {
   name: 'vnet2Deploy'
   params: {
     location: location
