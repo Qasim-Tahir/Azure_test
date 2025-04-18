@@ -20,8 +20,9 @@ jobs:
         with:
           scope: resourcegroup
           resourceGroupName: Cloud_Computing
-          template: ./main.bicep
+          template: ./CLoud/Azure_Bicep_VNET_Deployment/main.bicep
           parameters: |
             location=eastus
             adminUsername=${{ secrets.ADMIN_USERNAME }}
             adminPassword=${{ secrets.ADMIN_PASSWORD }}
+          failOnStdErr: true
