@@ -1,6 +1,6 @@
 param location string = 'eastus'
 param adminUsername string
-@secure() param adminPassword string 
+@secure() param adminPassword string
 
 // VNET1
 module vnet1 'modules/vnet.bicep' = {
@@ -55,6 +55,8 @@ module vm1 'modules/vm.bicep' = {
   params: {
     name: 'vm1'
     location: location
+    adminUsername: adminUsername
+    adminPassword: adminPassword
     subnetId: vnet1.outputs.subnets.infra
   }
 }
@@ -64,6 +66,8 @@ module vm2 'modules/vm.bicep' = {
   params: {
     name: 'vm2'
     location: location
+    adminUsername: adminUsername
+    adminPassword: adminPassword
     subnetId: vnet2.outputs.subnets.infra
   }
 }
