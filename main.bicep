@@ -51,6 +51,7 @@ resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
 }
 
 
+
 // VMs
 module vm1 'modules/vm.bicep' = {
   name: 'vm1'
