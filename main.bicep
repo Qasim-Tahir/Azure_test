@@ -3,8 +3,8 @@ param adminUsername string
 param adminPassword string // No @secure() here
 
 // VNET1
-module vnet1 'modules/vnet.bicep' = {
-  name: 'vnet1'
+module vnet1 'vnet.bicep' = {
+  name: 'vnet1Module'
   params: {
     name: 'vnet1'
     location: location
@@ -14,9 +14,8 @@ module vnet1 'modules/vnet.bicep' = {
   }
 }
 
-// VNET2
-module vnet2 'modules/vnet.bicep' = {
-  name: 'vnet2'
+module vnet2 'vnet.bicep' = {
+  name: 'vnet2Module'
   params: {
     name: 'vnet2'
     location: location
@@ -26,26 +25,32 @@ module vnet2 'modules/vnet.bicep' = {
   }
 }
 
+
 // Peering
-resource peer1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet1-to-vnet2'
+resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
+  name: 'vnet1/vnet1-to-vnet2'
+  scope: resourceGroup()
   properties: {
     remoteVirtualNetwork: {
       id: vnet2.outputs.vnetId
     }
     allowVirtualNetworkAccess: true
   }
+  dependsOn: [vnet1, vnet2]
 }
 
-resource peer2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet2-to-vnet1'
+resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
+  name: 'vnet2/vnet2-to-vnet1'
+  scope: resourceGroup()
   properties: {
     remoteVirtualNetwork: {
       id: vnet1.outputs.vnetId
     }
     allowVirtualNetworkAccess: true
   }
+  dependsOn: [vnet1, vnet2]
 }
+
 
 // VMs
 module vm1 'modules/vm.bicep' = {
