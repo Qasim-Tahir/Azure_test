@@ -1,115 +1,120 @@
-@description('Location for all resources')
-param location string = 'eastus'
+@description('Location for all resources.')
+param location string = resourceGroup().location
 
-@description('Username for the VM admin')
+@description('First VNET name')
+param vnet1Name string
+
+@description('Second VNET name')
+param vnet2Name string
+
+@description('First VNET address prefix')
+param vnet1AddressPrefix string
+
+@description('Second VNET address prefix')
+param vnet2AddressPrefix string
+
+@description('Infra subnet address prefix for VNET1')
+param vnet1InfraSubnetPrefix string
+
+@description('Storage subnet address prefix for VNET1')
+param vnet1StorageSubnetPrefix string
+
+@description('Infra subnet address prefix for VNET2')
+param vnet2InfraSubnetPrefix string
+
+@description('Storage subnet address prefix for VNET2')
+param vnet2StorageSubnetPrefix string
+
+@description('Username for the Virtual Machine')
 param adminUsername string
 
-@description('Password for the VM admin')
+@description('Password for the Virtual Machine')
 @secure()
 param adminPassword string
 
-@description('Name for the first virtual network')
-param vnet1Name string = 'vnet1'
+@description('Name for the first Virtual Machine')
+param vm1Name string
 
-@description('Name for the second virtual network')
-param vnet2Name string = 'vnet2'
+@description('Name for the second Virtual Machine')
+param vm2Name string
 
-@description('VNet1 address space and subnets')
-param vnet1Prefix string = '10.0.0.0/16'
-param vnet1InfraPrefix string = '10.0.1.0/24'
-param vnet1StoragePrefix string = '10.0.2.0/24'
+@description('Size of the VM')
+param vmSize string = 'Standard_B2s'
 
-@description('VNet2 address space and subnets')
-param vnet2Prefix string = '10.1.0.0/16'
-param vnet2InfraPrefix string = '10.1.1.0/24'
-param vnet2StoragePrefix string = '10.1.2.0/24'
+@description('Name for the first storage account')
+param storageAccount1Name string
 
-// Virtual Networks
-module vnet1 'modules/vnet.bicep' = {
-  name: 'vnet1Deploy'
+@description('Name for the second storage account')
+param storageAccount2Name string
+
+@description('Name for the Azure Monitor workspace')
+param logWorkspaceName string
+
+// Deploy the Network Module
+module networkModule 'vnets.bicep' = {
+  name: 'networkDeployment'
   params: {
-    name: vnet1Name
     location: location
-    addressPrefix: vnet1Prefix
-    infraSubnetPrefix: vnet1InfraPrefix
-    storageSubnetPrefix: vnet1StoragePrefix
+    vnet1Name: vnet1Name
+    vnet2Name: vnet2Name
+    vnet1AddressPrefix: vnet1AddressPrefix
+    vnet2AddressPrefix: vnet2AddressPrefix
+    vnet1InfraSubnetPrefix: vnet1InfraSubnetPrefix
+    vnet1StorageSubnetPrefix: vnet1StorageSubnetPrefix
+    vnet2InfraSubnetPrefix: vnet2InfraSubnetPrefix
+    vnet2StorageSubnetPrefix: vnet2StorageSubnetPrefix
   }
 }
 
-module vnet2 'modules/vnet.bicep' = {
-  name: 'vnet2Deploy'
+// Deploy the VM Module
+module vmModule 'vm.bicep' = {
+  name: 'vmDeployment'
   params: {
-    name: vnet2Name
-    location: location
-    addressPrefix: vnet2Prefix
-    infraSubnetPrefix: vnet2InfraPrefix
-    storageSubnetPrefix: vnet2StoragePrefix
-  }
-}
-
-// VNet Peering
-resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: '${vnet1Name}/vnet1-to-vnet2'
-  properties: {
-    remoteVirtualNetwork: {
-      id: vnet2.outputs.vnetId
-    }
-    allowVirtualNetworkAccess: true
-    allowForwardedTraffic: true
-    allowGatewayTransit: false
-    useRemoteGateways: false
-  }
-}
-
-resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: '${vnet2Name}/vnet2-to-vnet1'
-  properties: {
-    remoteVirtualNetwork: {
-      id: vnet1.outputs.vnetId
-    }
-    allowVirtualNetworkAccess: true
-    allowForwardedTraffic: true
-    allowGatewayTransit: false
-    useRemoteGateways: false
-  }
-}
-
-// VMs
-module vm1 'modules/vm.bicep' = {
-  name: 'vm1'
-  params: {
-    name: 'vm1'
     location: location
     adminUsername: adminUsername
     adminPassword: adminPassword
-    subnetId: vnet1.outputs.subnets.infra
+    vm1Name: vm1Name
+    vm2Name: vm2Name
+    vmSize: vmSize
+    vnet1InfraSubnetId: networkModule.outputs.vnet1InfraSubnetId
+    vnet2InfraSubnetId: networkModule.outputs.vnet2InfraSubnetId
   }
+  dependsOn: [
+    networkModule
+  ]
 }
 
-module vm2 'modules/vm.bicep' = {
-  name: 'vm2'
+// Deploy the Storage Module
+module storageModule 'storage.bicep' = {
+  name: 'storageDeployment'
   params: {
-    name: 'vm2'
     location: location
-    adminUsername: adminUsername
-    adminPassword: adminPassword
-    subnetId: vnet2.outputs.subnets.infra
+    storageAccount1Name: storageAccount1Name
+    storageAccount2Name: storageAccount2Name
+    vnet1StorageSubnetId: networkModule.outputs.vnet1StorageSubnetId
+    vnet2StorageSubnetId: networkModule.outputs.vnet2StorageSubnetId
   }
+  dependsOn: [
+    networkModule
+  ]
 }
 
-// Storage Accounts
-module storage1 'modules/storage.bicep' = {
-  name: 'storage1'
+// Deploy the Monitoring Module
+module monitoringModule 'monitoring.bicep' = {
+  name: 'monitoringDeployment'
   params: {
-    name: 'storage1zrs'
     location: location
+    logWorkspaceName: logWorkspaceName
+    vm1Id: vmModule.outputs.vm1Id
+    vm2Id: vmModule.outputs.vm2Id
+    storageAccount1Id: storageModule.outputs.storageAccount1Id
+    storageAccount2Id: storageModule.outputs.storageAccount2Id
   }
+  dependsOn: [
+    vmModule
+    storageModule
+  ]
 }
 
-module storage2 'modules/storage.bicep' = {
-  name: 'storage2'
-  params: {
-    name: 'storage2zrs'
-    location: location
-  }
-}
+// Outputs
+output logAnalyticsWorkspaceId string = monitoringModule.outputs.logAnalyticsWorkspaceId

@@ -1,0 +1,62 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "location": {
+        "value": "eastus"
+      },
+      "vnet1Name": {
+        "value": "vnet-east-001"
+      },
+      "vnet2Name": {
+        "value": "vnet-east-002"
+      },
+      "vnet1AddressPrefix": {
+        "value": "10.1.0.0/16"
+      },
+      "vnet2AddressPrefix": {
+        "value": "10.2.0.0/16"
+      },
+      "vnet1InfraSubnetPrefix": {
+        "value": "10.1.0.0/24"
+      },
+      "vnet1StorageSubnetPrefix": {
+        "value": "10.1.1.0/24"
+      },
+      "vnet2InfraSubnetPrefix": {
+        "value": "10.2.0.0/24"
+      },
+      "vnet2StorageSubnetPrefix": {
+        "value": "10.2.1.0/24"
+      },
+      "adminUsername": {
+        "value": "azureadmin"
+      },
+      "adminPassword": {
+        "reference": {
+          "keyVault": {
+            "id": "/subscriptions/{subscription-id}/resourceGroups/{rg-name}/providers/Microsoft.KeyVault/vaults/{keyvault-name}"
+          },
+          "secretName": "VMAdminPassword"
+        }
+      },
+      "vm1Name": {
+        "value": "vm-east-001"
+      },
+      "vm2Name": {
+        "value": "vm-east-002"
+      },
+      "vmSize": {
+        "value": "Standard_B2s"
+      },
+      "storageAccount1Name": {
+        "value": "steast001"
+      },
+      "storageAccount2Name": {
+        "value": "steast002"
+      },
+      "logWorkspaceName": {
+        "value": "log-workspace-east-001"
+      }
+    }
+  }
