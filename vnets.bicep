@@ -97,7 +97,8 @@ resource vnet2 'Microsoft.Network/virtualNetworks@2021-05-01' = {
 
 // VNET Peering VNET1 to VNET2
 resource vnet1ToVnet2Peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: '${vnet1Name}/peering-to-${vnet2Name}'
+  parent: vnet1
+  name: 'peering-to-${vnet2Name}'
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
@@ -107,15 +108,12 @@ resource vnet1ToVnet2Peering 'Microsoft.Network/virtualNetworks/virtualNetworkPe
       id: vnet2.id
     }
   }
-  dependsOn: [
-    vnet1
-    vnet2
-  ]
 }
 
 // VNET Peering VNET2 to VNET1
 resource vnet2ToVnet1Peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: '${vnet2Name}/peering-to-${vnet1Name}'
+  parent: vnet2
+  name: 'peering-to-${vnet1Name}'
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
@@ -125,10 +123,6 @@ resource vnet2ToVnet1Peering 'Microsoft.Network/virtualNetworks/virtualNetworkPe
       id: vnet1.id
     }
   }
-  dependsOn: [
-    vnet1
-    vnet2
-  ]
 }
 
 // Outputs

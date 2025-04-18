@@ -100,15 +100,16 @@ module storageModule 'storage.bicep' = {
 }
 
 // Deploy the Monitoring Module
-module monitoringModule 'monitoring.bicep' = {
+// Deploy the Monitoring Module
+module monitoringModule 'monitor.bicep' = {
   name: 'monitoringDeployment'
   params: {
     location: location
     logWorkspaceName: logWorkspaceName
-    vm1Id: vmModule.outputs.vm1Id
-    vm2Id: vmModule.outputs.vm2Id
-    storageAccount1Id: storageModule.outputs.storageAccount1Id
-    storageAccount2Id: storageModule.outputs.storageAccount2Id
+    vm1Name: vm1Name
+    vm2Name: vm2Name
+    storageAccount1Name: storageAccount1Name
+    storageAccount2Name: storageAccount2Name
   }
   dependsOn: [
     vmModule

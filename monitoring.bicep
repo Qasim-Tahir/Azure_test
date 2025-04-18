@@ -4,17 +4,17 @@ param location string = resourceGroup().location
 @description('Name for the Azure Monitor workspace')
 param logWorkspaceName string
 
-@description('VM1 Resource ID')
-param vm1Id string
+@description('VM1 Name')
+param vm1Name string
 
-@description('VM2 Resource ID')
-param vm2Id string
+@description('VM2 Name')
+param vm2Name string
 
-@description('Storage Account 1 Resource ID')
-param storageAccount1Id string
+@description('Storage Account 1 Name')
+param storageAccount1Name string
 
-@description('Storage Account 2 Resource ID')
-param storageAccount2Id string
+@description('Storage Account 2 Name')
+param storageAccount2Name string
 
 // Log Analytics Workspace
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
@@ -31,9 +31,26 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06
   }
 }
 
+// Reference the existing VMs and storage accounts
+resource vm1 'Microsoft.Compute/virtualMachines@2021-11-01' existing = {
+  name: vm1Name
+}
+
+resource vm2 'Microsoft.Compute/virtualMachines@2021-11-01' existing = {
+  name: vm2Name
+}
+
+resource storageAccount1 'Microsoft.Storage/storageAccounts@2021-08-01' existing = {
+  name: storageAccount1Name
+}
+
+resource storageAccount2 'Microsoft.Storage/storageAccounts@2021-08-01' existing = {
+  name: storageAccount2Name
+}
+
 // VM1 Diagnostic Settings
 resource vm1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: resourceId('Microsoft.Compute/virtualMachines', split(vm1Id, '/')[8])
+  scope: vm1
   name: 'vm1-diagnostic-settings'
   properties: {
     workspaceId: logAnalyticsWorkspace.id
@@ -48,7 +65,7 @@ resource vm1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
 
 // VM2 Diagnostic Settings
 resource vm2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: resourceId('Microsoft.Compute/virtualMachines', split(vm2Id, '/')[8])
+  scope: vm2
   name: 'vm2-diagnostic-settings'
   properties: {
     workspaceId: logAnalyticsWorkspace.id
@@ -63,7 +80,7 @@ resource vm2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
 
 // Storage Account 1 Diagnostic Settings
 resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: resourceId('Microsoft.Storage/storageAccounts', split(storageAccount1Id, '/')[8])
+  scope: storageAccount1
   name: 'storage1-diagnostic-settings'
   properties: {
     workspaceId: logAnalyticsWorkspace.id
@@ -92,7 +109,7 @@ resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-
 
 // Storage Account 2 Diagnostic Settings
 resource storage2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: resourceId('Microsoft.Storage/storageAccounts', split(storageAccount2Id, '/')[8])
+  scope: storageAccount2
   name: 'storage2-diagnostic-settings'
   properties: {
     workspaceId: logAnalyticsWorkspace.id
