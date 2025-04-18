@@ -33,6 +33,7 @@ jobs:
           sudo mv ./bicep /usr/local/bin/bicep
           bicep --version
 
+          
       - name: Validate Bicep files
         run: |
           az deployment group validate \
