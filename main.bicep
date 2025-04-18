@@ -1,7 +1,8 @@
 param location string = 'eastus'
 param adminUsername string
+
 @secure()
-param adminPassword string // No @secure() here
+param adminPassword string // ✅ Now marked as secure
 
 // VNET1
 module vnet1 'modules/vnet.bicep' = {
@@ -26,32 +27,28 @@ module vnet2 'modules/vnet.bicep' = {
   }
 }
 
-
-// Peering
+// Peering — use correct parent reference instead of scope
 resource vnet1ToVnet2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet1/vnet1-to-vnet2'
-  scope: resourceGroup()
+  name: 'vnet1-to-vnet2'
+  parent: vnet1.outputs.vnetResource
   properties: {
     remoteVirtualNetwork: {
       id: vnet2.outputs.vnetId
     }
     allowVirtualNetworkAccess: true
   }
-  dependsOn: [vnet1, vnet2]
 }
 
 resource vnet2ToVnet1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet2/vnet2-to-vnet1'
-  scope: resourceGroup()
+  name: 'vnet2-to-vnet1'
+  parent: vnet2.outputs.vnetResource
   properties: {
     remoteVirtualNetwork: {
       id: vnet1.outputs.vnetId
     }
     allowVirtualNetworkAccess: true
   }
-  dependsOn: [vnet1, vnet2]
 }
-
 
 // VMs
 module vm1 'modules/vm.bicep' = {
