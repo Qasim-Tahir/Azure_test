@@ -1,6 +1,6 @@
 param location string = 'eastus'
 param adminUsername string
-@secure() param adminPassword string
+param adminPassword string // No @secure() here
 
 // VNET1
 module vnet1 'modules/vnet.bicep' = {
