@@ -20,5 +20,5 @@ jobs:
         with:
           scope: resourcegroup
           resourceGroupName: Cloud_Computing
-          template: ./bicep/main.bicep
+          template: ./main.bicep
           parameters: location='eastus'
