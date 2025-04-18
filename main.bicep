@@ -1,83 +1,36 @@
-param location string = 'eastus'
+param adminUsername string
+param adminPassword string
+param location string
 
-// VNET1
-module vnet1 'modules/vnet.bicep' = {
-  name: 'vnet1'
-  params: {
-    name: 'vnet1'
-    location: location
-    addressPrefix: '10.0.0.0/16'
-    infraSubnetPrefix: '10.0.1.0/24'
-    storageSubnetPrefix: '10.0.2.0/24'
-  }
-}
-
-// VNET2
-module vnet2 'modules/vnet.bicep' = {
-  name: 'vnet2'
-  params: {
-    name: 'vnet2'
-    location: location
-    addressPrefix: '10.1.0.0/16'
-    infraSubnetPrefix: '10.1.1.0/24'
-    storageSubnetPrefix: '10.1.2.0/24'
-  }
-}
-
-// Peering
-resource peer1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet1/vnet1-to-vnet2'
+resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
+  name: 'myVM'
+  location: location
   properties: {
-    remoteVirtualNetwork: {
-      id: vnet2.outputs.vnetId
+    hardwareProfile: {
+      vmSize: 'Standard_B1s'
     }
-    allowVirtualNetworkAccess: true
-  }
-}
-
-resource peer2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
-  name: 'vnet2/vnet2-to-vnet1'
-  properties: {
-    remoteVirtualNetwork: {
-      id: vnet1.outputs.vnetId
+    storageProfile: {
+      imageReference: {
+        publisher: 'Canonical'
+        offer: 'UbuntuServer'
+        sku: '18.04-LTS'
+        version: 'latest'
+      }
+      osDisk: {
+        createOption: 'FromImage'
+      }
     }
-    allowVirtualNetworkAccess: true
-  }
-}
-
-
-// VMs
-module vm1 'modules/vm.bicep' = {
-  name: 'vm1'
-  params: {
-    name: 'vm1'
-    location: location
-    subnetId: vnet1.outputs.subnets.infra
-  }
-}
-
-module vm2 'modules/vm.bicep' = {
-  name: 'vm2'
-  params: {
-    name: 'vm2'
-    location: location
-    subnetId: vnet2.outputs.subnets.infra
-  }
-}
-
-// Storage Accounts
-module storage1 'modules/storage.bicep' = {
-  name: 'storage1'
-  params: {
-    name: 'storage1zrs'
-    location: location
-  }
-}
-
-module storage2 'modules/storage.bicep' = {
-  name: 'storage2'
-  params: {
-    name: 'storage2zrs'
-    location: location
+    osProfile: {
+      computerName: 'myVM'
+      adminUsername: adminUsername
+      adminPassword: adminPassword
+    }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          id: resourceId('Microsoft.Network/networkInterfaces', 'myVM-nic')
+        }
+      ]
+    }
   }
 }
