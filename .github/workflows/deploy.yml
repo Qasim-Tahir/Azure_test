@@ -21,4 +21,9 @@ jobs:
           scope: resourcegroup
           resourceGroupName: Cloud_Computing
           template: ./main.bicep
-          parameters: location='eastus'
+          parameters: |
+            location='eastus'
+            adminUsername='${{ secrets.ADMIN_USERNAME }}'
+            adminPassword='${{ secrets.ADMIN_PASSWORD }}'
+
+          

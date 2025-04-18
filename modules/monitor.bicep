@@ -25,6 +25,6 @@ resource diagnostic 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' =
         }
       }
     ]
-    workspaceId: '/subscriptions/<your-subscription-id>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>'
+    workspaceId: '/subscriptions/bf93058d-40eb-487b-85eb-6d66bd0ed4e1/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>'
   }
 }

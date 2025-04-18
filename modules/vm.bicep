@@ -1,6 +1,30 @@
+@secure()
+param adminUsername string
+
+@secure()
+param adminPassword string
+
 param name string
 param location string
 param subnetId string
+
+resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
+  name: '${name}-nic'
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          subnet: {
+            id: subnetId
+          }
+          privateIPAllocationMethod: 'Dynamic'
+        }
+      }
+    ]
+  }
+}
 
 resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
   name: name
@@ -22,33 +46,15 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
     }
     osProfile: {
       computerName: name
-      adminUsername: 'azureuser'
-      adminPassword: 'Pa$$w0rd1234' // Use Key Vault or GitHub Secret in production
+      adminUsername: adminUsername
+      adminPassword: adminPassword
     }
     networkProfile: {
       networkInterfaces: [
         {
-          id: resourceId('Microsoft.Network/networkInterfaces', '${name}-nic')
+          id: nic.id
         }
       ]
     }
-  }
-}
-
-resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
-  name: '${name}-nic'
-  location: location
-  properties: {
-    ipConfigurations: [
-      {
-        name: 'ipconfig1'
-        properties: {
-          subnet: {
-            id: subnetId
-          }
-          privateIPAllocationMethod: 'Dynamic'
-        }
-      }
-    ]
   }
 }
