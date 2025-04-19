@@ -92,10 +92,6 @@ resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-
     ]
     logs: [
       {
-        category: 'StorageRead'
-        enabled: true
-      }
-      {
         category: 'StorageWrite'
         enabled: true
       }
@@ -120,10 +116,6 @@ resource storage2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-
       }
     ]
     logs: [
-      {
-        category: 'StorageRead'
-        enabled: true
-      }
       {
         category: 'StorageWrite'
         enabled: true
