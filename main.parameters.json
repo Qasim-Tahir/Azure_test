@@ -33,7 +33,7 @@
         "value": "azureadmin"
       },
       "adminPassword": {
-        "value": "ADMIN_PASSWORD"
+        "value": "A123/*-s"
       },
       "vm1Name": {
         "value": "vm-east-001"
