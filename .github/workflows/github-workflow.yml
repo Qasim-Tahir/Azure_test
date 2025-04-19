@@ -1,0 +1,75 @@
+name: Deploy Azure Infrastructure
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '*.bicep'
+      - '*.parameters.json'
+      - '.github/workflows/deploy-azure.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '*.bicep'
+      - '*.parameters.json'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Azure Bicep Install
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x ./bicep
+          sudo mv ./bicep /usr/local/bin/bicep
+          bicep --version
+
+          
+      - name: Validate Bicep files
+        run: |
+          az deployment group validate \
+            --resource-group ${{ secrets.AZURE_RG }} \
+            --template-file main.bicep \
+            --parameters main.parameters.json
+        
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Azure Bicep Install
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x ./bicep
+          sudo mv ./bicep /usr/local/bin/bicep
+          bicep --version
+
+      - name: Create Resource Group if not exists
+        run: |
+          az group create --name ${{ secrets.AZURE_RG }} --location eastus
+
+      - name: Deploy Bicep template
+        run: |
+          az deployment group create \
+            --resource-group ${{ secrets.AZURE_RG }} \
+            --template-file main.bicep \
+            --parameters main.parameters.json
+            --parameters adminPassword=${{ secrets.ADMIN_PASSWORD }}
