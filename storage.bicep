@@ -64,7 +64,34 @@ resource storageAccount2 'Microsoft.Storage/storageAccounts@2021-08-01' = {
     }
   }
 }
-
+// Storage Account 1 Diagnostic Settings
+resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: storageAccount1
+  name: 'storage1-diagnostic-settings'
+  properties: {
+    workspaceId: logAnalyticsWorkspace.id
+    metrics: [
+      {
+        category: 'Transaction'
+        enabled: true
+      }
+    ]
+    logs: [
+      {
+        category: 'StorageRead'
+        enabled: false
+      }
+      {
+        category: 'StorageWrite'
+        enabled: false
+      }
+      {
+        category: 'StorageDelete'
+        enabled: false
+      }
+    ]
+  }
+}
 // Outputs
 output storageAccount1Id string = storageAccount1.id
 output storageAccount2Id string = storageAccount2.id
