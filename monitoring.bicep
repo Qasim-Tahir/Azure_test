@@ -103,6 +103,7 @@ resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-
   }
 }
 
+
 // Storage Account 2 Diagnostic Settings
 resource storage2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: storageAccount2
