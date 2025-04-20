@@ -1,4 +1,30 @@
 param location string = resourceGroup().location
+@description('Location for all resources')
+param location             string
+
+@description('Name of the first VNET')
+param vnet1Name            string
+
+@description('Name of the second VNET')
+param vnet2Name            string
+
+@description('Address prefix for VNET 1')
+param vnet1AddressPrefix   string
+
+@description('Address prefix for VNET 2')
+param vnet2AddressPrefix   string
+
+@description('Infra subnet prefix for VNET 1')
+param vnet1InfraSubnetPrefix   string
+
+@description('Storage subnet prefix for VNET 1')
+param vnet1StorageSubnetPrefix string
+
+@description('Infra subnet prefix for VNET 2')
+param vnet2InfraSubnetPrefix   string
+
+@description('Storage subnet prefix for VNET 2')
+param vnet2StorageSubnetPrefix string
 
 resource vnet1 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   name: 'vnet1'
@@ -81,9 +107,9 @@ resource peer2to1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021
     useRemoteGateways: false
   }
 }
-output vnet1Id string = vnet1.id
-output vnet2Id string = vnet2.id
-output vnet1InfraSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet1.name, 'infra')
-output vnet2InfraSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet2.name, 'infra')
-output vnet1StorageSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet1.name, 'storage')
-output vnet2StorageSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet2.name, 'storage')
+output vnet1Id                string = vnet1.id
+output vnet2Id                string = vnet2.id
+output vnet1InfraSubnetId     string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet1.name, 'infra')
+output vnet1StorageSubnetId   string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet1.name, 'storage')
+output vnet2InfraSubnetId     string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet2.name, 'infra')
+output vnet2StorageSubnetId   string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet2.name, 'storage')

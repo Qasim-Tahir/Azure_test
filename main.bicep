@@ -8,17 +8,18 @@ param vmSize string = 'Standard_B2s'
 module vnetsModule './vnets.bicep' = {
   name: 'vnetDeployment'
   params: {
-    location: location
-    vnet1Name: 'vnet-east-001'
-    vnet2Name: 'vnet-east-002'
-    vnet1AddressPrefix: '10.1.0.0/16'
-    vnet2AddressPrefix: '10.2.0.0/16'
-    vnet1InfraSubnetPrefix: '10.1.0.0/24'
-    vnet1StorageSubnetPrefix: '10.1.1.0/24'
-    vnet2InfraSubnetPrefix: '10.2.0.0/24'
-    vnet2StorageSubnetPrefix: '10.2.1.0/24'
+    location:                  location
+    vnet1Name:                 'vnet-east-001'
+    vnet2Name:                 'vnet-east-002'
+    vnet1AddressPrefix:        '10.1.0.0/16'
+    vnet2AddressPrefix:        '10.2.0.0/16'
+    vnet1InfraSubnetPrefix:    '10.1.0.0/24'
+    vnet1StorageSubnetPrefix:  '10.1.1.0/24'
+    vnet2InfraSubnetPrefix:    '10.2.0.0/24'
+    vnet2StorageSubnetPrefix:  '10.2.1.0/24'
   }
 }
+
 
 // VNET PEERING
 module peering './peering.bicep' = {
