@@ -4,6 +4,45 @@ param adminPassword string
 param adminUsername string
 param vmSize string = 'Standard_B2s'
 
+@description('Name for the first VNET')
+param vnet1Name string
+
+@description('Name for the second VNET')
+param vnet2Name string
+
+@description('Address prefix for VNET 1')
+param vnet1AddressPrefix string
+
+@description('Address prefix for VNET 2')
+param vnet2AddressPrefix string
+
+@description('Infra subnet prefix for VNET 1')
+param vnet1InfraSubnetPrefix string
+
+@description('Storage subnet prefix for VNET 1')
+param vnet1StorageSubnetPrefix string
+
+@description('Infra subnet prefix for VNET 2')
+param vnet2InfraSubnetPrefix string
+
+@description('Storage subnet prefix for VNET 2')
+param vnet2StorageSubnetPrefix string
+
+@description('VM 1 Name')
+param vm1Name string
+
+@description('VM 2 Name')
+param vm2Name string
+
+@description('Storage Account 1 Name')
+param storageAccount1Name string
+
+@description('Storage Account 2 Name')
+param storageAccount2Name string
+
+@description('Log Analytics Workspace Name')
+param logWorkspaceName string
+
 // VNETS
 module vnetsModule './vnets.bicep' = {
   name: 'vnetDeployment'
