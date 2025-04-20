@@ -21,6 +21,7 @@ module vnetsModule './vnets.bicep' = {
 }
 
 
+
 // VNET PEERING
 module peering './peering.bicep' = {
   name: 'vnetPeering'
