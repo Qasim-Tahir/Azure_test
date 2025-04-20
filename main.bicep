@@ -106,6 +106,7 @@ module monitoringModule 'monitoring.bicep' = {
     vm2Name: vm2Name
     storageAccount1Name: storageAccount1Name
     storageAccount2Name: storageAccount2Name
+    logAnalyticsWorkspaceId: monitoringModule.outputs.logAnalyticsWorkspaceId
   }
 }
 

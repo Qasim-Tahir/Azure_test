@@ -16,6 +16,9 @@ param storageAccount1Name string
 @description('Storage Account 2 Name')
 param storageAccount2Name string
 
+@description('Log Analytics Workspace ID for diagnostics')
+param logAnalyticsWorkspaceId string
+
 // Log Analytics Workspace
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
   name: logWorkspaceName
@@ -53,7 +56,7 @@ resource vm1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   scope: vm1
   name: 'vm1-diagnostic-settings'
   properties: {
-    workspaceId: logAnalyticsWorkspace.id
+    workspaceId: logAnalyticsWorkspaceId
     metrics: [
       {
         category: 'AllMetrics'
@@ -68,7 +71,7 @@ resource vm2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01
   scope: vm2
   name: 'vm2-diagnostic-settings'
   properties: {
-    workspaceId: logAnalyticsWorkspace.id
+    workspaceId: logAnalyticsWorkspaceId
     metrics: [
       {
         category: 'AllMetrics'
@@ -83,7 +86,7 @@ resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-
   scope: storageAccount1
   name: 'storage1-diagnostic-settings'
   properties: {
-    workspaceId: logAnalyticsWorkspace.id
+    workspaceId: logAnalyticsWorkspaceId
     metrics: [
       {
         category: 'Transaction'
@@ -103,13 +106,12 @@ resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-
   }
 }
 
-
 // Storage Account 2 Diagnostic Settings
 resource storage2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: storageAccount2
   name: 'storage2-diagnostic-settings'
   properties: {
-    workspaceId: logAnalyticsWorkspace.id
+    workspaceId: logAnalyticsWorkspaceId
     metrics: [
       {
         category: 'Transaction'
