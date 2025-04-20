@@ -50,6 +50,9 @@ param storageAccount2Name string
 @description('Name for the Azure Monitor workspace')
 param logWorkspaceName string
 
+@description('Log Analytics Workspace ID for diagnostics')
+param logAnalyticsWorkspaceId string
+
 // Deploy the Network Module
 module networkModule 'vnets.bicep' = {
   name: 'networkDeployment'
@@ -106,6 +109,37 @@ module monitoringModule 'monitoring.bicep' = {
     vm2Name: vm2Name
     storageAccount1Name: storageAccount1Name
     storageAccount2Name: storageAccount2Name
+    logAnalyticsWorkspaceId: monitoringModule.outputs.logAnalyticsWorkspaceId
+  }
+}
+
+// VM1 Diagnostic Settings
+resource vm1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: vm1
+  name: 'vm1-diagnostic-settings'
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// VM2 Diagnostic Settings
+resource vm2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: vm2
+  name: 'vm2-diagnostic-settings'
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
   }
 }
 
