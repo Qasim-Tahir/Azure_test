@@ -4,11 +4,8 @@ param adminPassword string
 param adminUsername string
 param vmSize string = 'Standard_B2s'
 
-var vnet1Id = vnetsModule.outputs.vnet1Id
-var vnet1InfraSubnetId = vnetsModule.outputs.vnet1InfraSubnetId
-
-
-module vnets './vnets.bicep' = {
+// VNETS
+module vnetsModule './vnets.bicep' = {
   name: 'vnetDeployment'
   params: {
     location: location
@@ -23,52 +20,18 @@ module vnets './vnets.bicep' = {
   }
 }
 
+// VNET PEERING
 module peering './peering.bicep' = {
   name: 'vnetPeering'
   params: {
-    vnet1Id: vnets.outputs.vnet1Id
-    vnet2Id: vnets.outputs.vnet2Id
+    vnet1Id: vnetsModule.outputs.vnet1Id
+    vnet2Id: vnetsModule.outputs.vnet2Id
     vnet1Name: 'vnet-east-001'
     vnet2Name: 'vnet-east-002'
   }
 }
 
-module vm1 './vm.bicep' = {
-  name: 'vm1Deployment'
-  params: {
-    location: location
-    vmName: 'vm-east-001'
-    subnetId: vnets.outputs.vnet1InfraSubnetId
-    adminUsername: adminUsername
-    adminPassword: adminPassword
-    vmSize: vmSize
-  }
-}
-
-module vm2 './vm.bicep' = {
-  name: 'vm2Deployment'
-  params: {
-    location: location
-    vmName: 'vm-east-002'
-    subnetId: vnets.outputs.vnet2InfraSubnetId
-    adminUsername: adminUsername
-    adminPassword: adminPassword
-    vmSize: vmSize
-  }
-}
-
-module storage './storage.bicep' = {
-  name: 'storageDeployment'
-  params: {
-    location: location
-    storageAccount1Name: 'steast001'
-    storageAccount2Name: 'steast002'
-    vnet1StorageSubnetId: vnets.outputs.vnet1StorageSubnetId
-    vnet2StorageSubnetId: vnets.outputs.vnet2StorageSubnetId
-    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
-  }
-}
-
+// MONITORING (first, so we can use its output later)
 module monitoring './monitoring.bicep' = {
   name: 'monitoringSetup'
   params: {
@@ -78,6 +41,45 @@ module monitoring './monitoring.bicep' = {
     vm2Name: 'vm-east-002'
     storageAccount1Name: 'steast001'
     storageAccount2Name: 'steast002'
-    logAnalyticsWorkspaceId: '' // will be updated dynamically
+    logAnalyticsWorkspaceId: '' // optional param, or update monitoring module to not require it here
+  }
+}
+
+// VM 1
+module vm1 './vm.bicep' = {
+  name: 'vm1Deployment'
+  params: {
+    location: location
+    vmName: 'vm-east-001'
+    subnetId: vnetsModule.outputs.vnet1InfraSubnetId
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+    vmSize: vmSize
+  }
+}
+
+// VM 2
+module vm2 './vm.bicep' = {
+  name: 'vm2Deployment'
+  params: {
+    location: location
+    vmName: 'vm-east-002'
+    subnetId: vnetsModule.outputs.vnet2InfraSubnetId
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+    vmSize: vmSize
+  }
+}
+
+// STORAGE
+module storage './storage.bicep' = {
+  name: 'storageDeployment'
+  params: {
+    location: location
+    storageAccount1Name: 'steast001'
+    storageAccount2Name: 'steast002'
+    vnet1StorageSubnetId: vnetsModule.outputs.vnet1StorageSubnetId
+    vnet2StorageSubnetId: vnetsModule.outputs.vnet2StorageSubnetId
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
   }
 }
