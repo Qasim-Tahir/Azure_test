@@ -81,3 +81,9 @@ resource peer2to1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021
     useRemoteGateways: false
   }
 }
+output vnet1Id string = vnet1.id
+output vnet2Id string = vnet2.id
+output vnet1InfraSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet1.name, 'infra')
+output vnet2InfraSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet2.name, 'infra')
+output vnet1StorageSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet1.name, 'storage')
+output vnet2StorageSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet2.name, 'storage')

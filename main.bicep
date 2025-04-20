@@ -4,6 +4,10 @@ param adminPassword string
 param adminUsername string
 param vmSize string = 'Standard_B2s'
 
+var vnet1Id = vnetsModule.outputs.vnet1Id
+var vnet1InfraSubnetId = vnetsModule.outputs.vnet1InfraSubnetId
+
+
 module vnets './vnets.bicep' = {
   name: 'vnetDeployment'
   params: {
