@@ -93,11 +93,9 @@ module storageModule './storage.bicep' = {
     storageAccount2Name: storageAccount2Name
     vnet1StorageSubnetId: networkModule.outputs.vnet1StorageSubnetId
     vnet2StorageSubnetId: networkModule.outputs.vnet2StorageSubnetId
-    logAnalyticsWorkspaceId: monitoringModule.outputs.logAnalyticsWorkspaceId
   }
 }
 
-// Deploy the Monitoring Module
 // Deploy the Monitoring Module
 module monitoringModule 'monitoring.bicep' = {
   name: 'monitoringDeployment'
@@ -109,10 +107,6 @@ module monitoringModule 'monitoring.bicep' = {
     storageAccount1Name: storageAccount1Name
     storageAccount2Name: storageAccount2Name
   }
-  dependsOn: [
-    vmModule
-    storageModule
-  ]
 }
 
 // Outputs
