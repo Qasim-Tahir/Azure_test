@@ -85,7 +85,7 @@ module vmModule 'vm.bicep' = {
 }
 
 // Deploy the Storage Module
-module storageModule 'storage.bicep' = {
+module storageModule './storage.bicep' = {
   name: 'storageDeployment'
   params: {
     location: location
@@ -93,10 +93,8 @@ module storageModule 'storage.bicep' = {
     storageAccount2Name: storageAccount2Name
     vnet1StorageSubnetId: networkModule.outputs.vnet1StorageSubnetId
     vnet2StorageSubnetId: networkModule.outputs.vnet2StorageSubnetId
+    logAnalyticsWorkspaceId: monitoringModule.outputs.logAnalyticsWorkspaceId
   }
-  dependsOn: [
-    networkModule
-  ]
 }
 
 // Deploy the Monitoring Module

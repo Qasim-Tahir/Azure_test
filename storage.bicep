@@ -13,6 +13,9 @@ param vnet1StorageSubnetId string
 @description('VNET 2 Storage Subnet ID')
 param vnet2StorageSubnetId string
 
+@description('Log Analytics Workspace ID for diagnostics')
+param logAnalyticsWorkspaceId string
+
 // Storage Account in VNET1
 resource storageAccount1 'Microsoft.Storage/storageAccounts@2021-08-01' = {
   name: storageAccount1Name
@@ -69,7 +72,7 @@ resource storage1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-
   scope: storageAccount1
   name: 'storage1-diagnostic-settings'
   properties: {
-    workspaceId: logAnalyticsWorkspace.id
+    workspaceId: logAnalyticsWorkspaceId
     metrics: [
       {
         category: 'Transaction'
