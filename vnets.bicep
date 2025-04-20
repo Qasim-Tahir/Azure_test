@@ -1,44 +1,83 @@
-param location string
-param vnet1Name string
-param vnet2Name string
-param vnet1AddressPrefix string
-param vnet2AddressPrefix string
-param vnet1InfraSubnetPrefix string
-param vnet1StorageSubnetPrefix string
-param vnet2InfraSubnetPrefix string
-param vnet2StorageSubnetPrefix string
+param location string = resourceGroup().location
 
 resource vnet1 'Microsoft.Network/virtualNetworks@2021-05-01' = {
-  name: vnet1Name
+  name: 'vnet1'
   location: location
   properties: {
     addressSpace: {
-      addressPrefixes: [vnet1AddressPrefix]
+      addressPrefixes: [
+        '10.0.0.0/16'
+      ]
     }
     subnets: [
-      { name: 'infra'; properties: { addressPrefix: vnet1InfraSubnetPrefix } }
-      { name: 'storage'; properties: { addressPrefix: vnet1StorageSubnetPrefix } }
+      {
+        name: 'infra'
+        properties: {
+          addressPrefix: '10.0.1.0/24'
+        }
+      }
+      {
+        name: 'storage'
+        properties: {
+          addressPrefix: '10.0.2.0/24'
+        }
+      }
     ]
   }
 }
 
 resource vnet2 'Microsoft.Network/virtualNetworks@2021-05-01' = {
-  name: vnet2Name
+  name: 'vnet2'
   location: location
   properties: {
     addressSpace: {
-      addressPrefixes: [vnet2AddressPrefix]
+      addressPrefixes: [
+        '10.1.0.0/16'
+      ]
     }
     subnets: [
-      { name: 'infra'; properties: { addressPrefix: vnet2InfraSubnetPrefix } }
-      { name: 'storage'; properties: { addressPrefix: vnet2StorageSubnetPrefix } }
+      {
+        name: 'infra'
+        properties: {
+          addressPrefix: '10.1.1.0/24'
+        }
+      }
+      {
+        name: 'storage'
+        properties: {
+          addressPrefix: '10.1.2.0/24'
+        }
+      }
     ]
   }
 }
 
-output vnet1Id string = vnet1.id
-output vnet2Id string = vnet2.id
-output vnet1InfraSubnetId string = vnet1.properties.subnets[0].id
-output vnet1StorageSubnetId string = vnet1.properties.subnets[1].id
-output vnet2InfraSubnetId string = vnet2.properties.subnets[0].id
-output vnet2StorageSubnetId string = vnet2.properties.subnets[1].id
+// VNet Peering from vnet1 to vnet2
+resource peer1to2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
+  name: 'vnet1-to-vnet2'
+  parent: vnet1
+  properties: {
+    remoteVirtualNetwork: {
+      id: vnet2.id
+    }
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+  }
+}
+
+// VNet Peering from vnet2 to vnet1
+resource peer2to1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2021-05-01' = {
+  name: 'vnet2-to-vnet1'
+  parent: vnet2
+  properties: {
+    remoteVirtualNetwork: {
+      id: vnet1.id
+    }
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+  }
+}
