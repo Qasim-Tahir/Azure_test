@@ -1,147 +1,79 @@
-@description('Location for all resources.')
 param location string = resourceGroup().location
-
-@description('First VNET name')
-param vnet1Name string
-
-@description('Second VNET name')
-param vnet2Name string
-
-@description('First VNET address prefix')
-param vnet1AddressPrefix string
-
-@description('Second VNET address prefix')
-param vnet2AddressPrefix string
-
-@description('Infra subnet address prefix for VNET1')
-param vnet1InfraSubnetPrefix string
-
-@description('Storage subnet address prefix for VNET1')
-param vnet1StorageSubnetPrefix string
-
-@description('Infra subnet address prefix for VNET2')
-param vnet2InfraSubnetPrefix string
-
-@description('Storage subnet address prefix for VNET2')
-param vnet2StorageSubnetPrefix string
-
-@description('Username for the Virtual Machine')
-param adminUsername string
-
-@description('Password for the Virtual Machine')
 @secure()
 param adminPassword string
-
-@description('Name for the first Virtual Machine')
-param vm1Name string
-
-@description('Name for the second Virtual Machine')
-param vm2Name string
-
-@description('Size of the VM')
+param adminUsername string
 param vmSize string = 'Standard_B2s'
 
-@description('Name for the first storage account')
-param storageAccount1Name string
-
-@description('Name for the second storage account')
-param storageAccount2Name string
-
-@description('Name for the Azure Monitor workspace')
-param logWorkspaceName string
-
-@description('Log Analytics Workspace ID for diagnostics')
-param logAnalyticsWorkspaceId string
-
-// Deploy the Network Module
-module networkModule 'vnets.bicep' = {
-  name: 'networkDeployment'
+module vnets './vnets.bicep' = {
+  name: 'vnetDeployment'
   params: {
     location: location
-    vnet1Name: vnet1Name
-    vnet2Name: vnet2Name
-    vnet1AddressPrefix: vnet1AddressPrefix
-    vnet2AddressPrefix: vnet2AddressPrefix
-    vnet1InfraSubnetPrefix: vnet1InfraSubnetPrefix
-    vnet1StorageSubnetPrefix: vnet1StorageSubnetPrefix
-    vnet2InfraSubnetPrefix: vnet2InfraSubnetPrefix
-    vnet2StorageSubnetPrefix: vnet2StorageSubnetPrefix
+    vnet1Name: 'vnet-east-001'
+    vnet2Name: 'vnet-east-002'
+    vnet1AddressPrefix: '10.1.0.0/16'
+    vnet2AddressPrefix: '10.2.0.0/16'
+    vnet1InfraSubnetPrefix: '10.1.0.0/24'
+    vnet1StorageSubnetPrefix: '10.1.1.0/24'
+    vnet2InfraSubnetPrefix: '10.2.0.0/24'
+    vnet2StorageSubnetPrefix: '10.2.1.0/24'
   }
 }
 
-// Deploy the VM Module
-module vmModule 'vm.bicep' = {
-  name: 'vmDeployment'
+module peering './peering.bicep' = {
+  name: 'vnetPeering'
+  params: {
+    vnet1Id: vnets.outputs.vnet1Id
+    vnet2Id: vnets.outputs.vnet2Id
+    vnet1Name: 'vnet-east-001'
+    vnet2Name: 'vnet-east-002'
+  }
+}
+
+module vm1 './vm.bicep' = {
+  name: 'vm1Deployment'
   params: {
     location: location
+    vmName: 'vm-east-001'
+    subnetId: vnets.outputs.vnet1InfraSubnetId
     adminUsername: adminUsername
     adminPassword: adminPassword
-    vm1Name: vm1Name
-    vm2Name: vm2Name
     vmSize: vmSize
-    vnet1InfraSubnetId: networkModule.outputs.vnet1InfraSubnetId
-    vnet2InfraSubnetId: networkModule.outputs.vnet2InfraSubnetId
   }
-  dependsOn: [
-    networkModule
-  ]
 }
 
-// Deploy the Storage Module
-module storageModule './storage.bicep' = {
+module vm2 './vm.bicep' = {
+  name: 'vm2Deployment'
+  params: {
+    location: location
+    vmName: 'vm-east-002'
+    subnetId: vnets.outputs.vnet2InfraSubnetId
+    adminUsername: adminUsername
+    adminPassword: adminPassword
+    vmSize: vmSize
+  }
+}
+
+module storage './storage.bicep' = {
   name: 'storageDeployment'
   params: {
     location: location
-    storageAccount1Name: storageAccount1Name
-    storageAccount2Name: storageAccount2Name
-    vnet1StorageSubnetId: networkModule.outputs.vnet1StorageSubnetId
-    vnet2StorageSubnetId: networkModule.outputs.vnet2StorageSubnetId
+    storageAccount1Name: 'steast001'
+    storageAccount2Name: 'steast002'
+    vnet1StorageSubnetId: vnets.outputs.vnet1StorageSubnetId
+    vnet2StorageSubnetId: vnets.outputs.vnet2StorageSubnetId
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
   }
 }
 
-// Deploy the Monitoring Module
-module monitoringModule 'monitoring.bicep' = {
-  name: 'monitoringDeployment'
+module monitoring './monitoring.bicep' = {
+  name: 'monitoringSetup'
   params: {
     location: location
-    logWorkspaceName: logWorkspaceName
-    vm1Name: vm1Name
-    vm2Name: vm2Name
-    storageAccount1Name: storageAccount1Name
-    storageAccount2Name: storageAccount2Name
-    logAnalyticsWorkspaceId: monitoringModule.outputs.logAnalyticsWorkspaceId
+    logWorkspaceName: 'log-workspace-east-001'
+    vm1Name: 'vm-east-001'
+    vm2Name: 'vm-east-002'
+    storageAccount1Name: 'steast001'
+    storageAccount2Name: 'steast002'
+    logAnalyticsWorkspaceId: '' // will be updated dynamically
   }
 }
-
-// VM1 Diagnostic Settings
-resource vm1DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: vm1
-  name: 'vm1-diagnostic-settings'
-  properties: {
-    workspaceId: logAnalyticsWorkspaceId
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-  }
-}
-
-// VM2 Diagnostic Settings
-resource vm2DiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: vm2
-  name: 'vm2-diagnostic-settings'
-  properties: {
-    workspaceId: logAnalyticsWorkspaceId
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-  }
-}
-
-// Outputs
-output logAnalyticsWorkspaceId string = monitoringModule.outputs.logAnalyticsWorkspaceId

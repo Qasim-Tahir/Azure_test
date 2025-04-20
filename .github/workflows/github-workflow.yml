@@ -4,14 +4,14 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '*.bicep'
-      - '*.parameters.json'
+      - '**/*.bicep'
+      - '**/*.json'
       - '.github/workflows/deploy-azure.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - '*.bicep'
-      - '*.parameters.json'
+      - '**/*.bicep'
+      - '**/*.json'
   workflow_dispatch:
 
 jobs:
@@ -19,28 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Azure Bicep Install
+      - name: Install Bicep CLI
         run: |
-          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
-          chmod +x ./bicep
-          sudo mv ./bicep /usr/local/bin/bicep
-          bicep --version
+          az bicep install
+          az bicep version
 
-          
-      - name: Validate Bicep files
+      - name: Validate Bicep deployment
         run: |
           az deployment group validate \
             --resource-group ${{ secrets.AZURE_RG }} \
             --template-file main.bicep \
-            --parameters main.parameters.json
-        
+            --parameters @main.parameters.json \
+            --parameters adminPassword=${{ secrets.ADMIN_PASSWORD }}
 
   deploy:
     needs: validate
@@ -48,28 +45,28 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Azure Bicep Install
+      - name: Install Bicep CLI
         run: |
-          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
-          chmod +x ./bicep
-          sudo mv ./bicep /usr/local/bin/bicep
-          bicep --version
+          az bicep install
+          az bicep version
 
       - name: Create Resource Group if not exists
         run: |
-          az group create --name ${{ secrets.AZURE_RG }} --location eastus
+          az group create \
+            --name ${{ secrets.AZURE_RG }} \
+            --location eastus
 
-      - name: Deploy Bicep template
+      - name: Deploy Infrastructure
         run: |
           az deployment group create \
             --resource-group ${{ secrets.AZURE_RG }} \
             --template-file main.bicep \
-            --parameters main.parameters.json
+            --parameters @main.parameters.json \
             --parameters adminPassword=${{ secrets.ADMIN_PASSWORD }}
