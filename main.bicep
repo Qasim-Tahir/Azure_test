@@ -77,12 +77,6 @@ module monitoring './monitoring.bicep' = {
   name: 'monitoringSetup'
   params: {
     location: location
-    logWorkspaceName: 'log-workspace-east-001'
-    vm1Name: 'vm-east-001'
-    vm2Name: 'vm-east-002'
-    storageAccount1Name: 'steast001'
-    storageAccount2Name: 'steast002'
-    logAnalyticsWorkspaceId: '' // optional param, or update monitoring module to not require it here
   }
 }
 
@@ -94,7 +88,6 @@ module vm1 './vm.bicep' = {
     vmName: 'vm-east-001'
     subnetId: vnetsModule.outputs.vnet1InfraSubnetId
     adminUsername: adminUsername
-    adminPassword: adminPassword
     vmSize: vmSize
   }
 }
