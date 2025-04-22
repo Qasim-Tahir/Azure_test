@@ -5,71 +5,67 @@ param adminUsername string
 param vmSize string = 'Standard_B2s'
 
 @description('Name for the first VNET')
-param vnet1Name string
+param vnet1Name string ='vnet1'
 
 @description('Name for the second VNET')
-param vnet2Name string
+param vnet2Name string ='vnet2'
 
 @description('Address prefix for VNET 1')
-param vnet1AddressPrefix string
+param vnet1AddressPrefix string ='10.0.0.0/16'
 
 @description('Address prefix for VNET 2')
-param vnet2AddressPrefix string
+param vnet2AddressPrefix string ='10.1.0.0/16'
 
 @description('Infra subnet prefix for VNET 1')
-param vnet1InfraSubnetPrefix string
+param vnet1InfraSubnetPrefix string = '10.0.0.0/24'
 
 @description('Storage subnet prefix for VNET 1')
-param vnet1StorageSubnetPrefix string
+param vnet1StorageSubnetPrefix string = '10.0.1.0/24'
 
 @description('Infra subnet prefix for VNET 2')
-param vnet2InfraSubnetPrefix string
+param vnet2InfraSubnetPrefix string ='10.1.0.0/24'
 
 @description('Storage subnet prefix for VNET 2')
-param vnet2StorageSubnetPrefix string
+param vnet2StorageSubnetPrefix string = '10.1.1.0/24'
 
-@description('VM 1 Name')
-param vm1Name string
-
-@description('VM 2 Name')
-param vm2Name string
-
-@description('Storage Account 1 Name')
-param storageAccount1Name string
-
-@description('Storage Account 2 Name')
-param storageAccount2Name string
-
-@description('Log Analytics Workspace Name')
-param logWorkspaceName string
-
-// VNETS
-module vnetsModule './vnets.bicep' = {
-  name: 'vnetDeployment'
+module vnet1 './vnets.bicep' = {
+  name: 'vnet1Deployment'
   params: {
-    location:                  location
-    vnet1Name:                 'vnet-east-001'
-    vnet2Name:                 'vnet-east-002'
-    vnet1AddressPrefix:        '10.1.0.0/16'
-    vnet2AddressPrefix:        '10.2.0.0/16'
-    vnet1InfraSubnetPrefix:    '10.1.0.0/24'
-    vnet1StorageSubnetPrefix:  '10.1.1.0/24'
-    vnet2InfraSubnetPrefix:    '10.2.0.0/24'
-    vnet2StorageSubnetPrefix:  '10.2.1.0/24'
+    vnetName: vnet1Name
+    location: location
+    vnetAddressPrefix: vnet1AddressPrefix
+    infraSubnetPrefix: vnet1InfraSubnetPrefix
+    storageSubnetPrefix: vnet1StorageSubnetPrefix
+  }
+}
+
+// Deploy second VNET
+module vnet2 './vnets.bicep' = {
+  name: 'vnet2Deployment'
+  params: {
+    vnetName: vnet2Name
+    location: location
+    vnetAddressPrefix: vnet2AddressPrefix
+    infraSubnetPrefix: vnet2InfraSubnetPrefix
+    storageSubnetPrefix: vnet2StorageSubnetPrefix
   }
 }
 
 
 
+
+
 // VNET PEERING
 module peering './peering.bicep' = {
-  name: 'vnetPeering'
+  name: 'VnetPeering'
   params: {
-    vnet1Id: vnetsModule.outputs.vnet1Id
-    vnet2Id: vnetsModule.outputs.vnet2Id
-    vnet1Name: 'vnet-east-001'
-    vnet2Name: 'vnet-east-002'
+    sourceVnetName: vnet1Name
+    targetVnetId: vnet2.outputs.vnet2Id
+    peeringName: 'peering-to-vnet2'
   }
+  dependsOn: [
+    vnet1
+  ]
 }
 
 // MONITORING (first, so we can use its output later)
@@ -86,8 +82,9 @@ module vm1 './vm.bicep' = {
   params: {
     location: location
     vmName: 'vm-east-001'
-    subnetId: vnetsModule.outputs.vnet1InfraSubnetId
+    subnetId: vnet1.outputs.vnet1InfraSubnetId
     adminUsername: adminUsername
+    adminPassword: adminPassword
     vmSize: vmSize
   }
 }
@@ -98,7 +95,7 @@ module vm2 './vm.bicep' = {
   params: {
     location: location
     vmName: 'vm-east-002'
-    subnetId: vnetsModule.outputs.vnet2InfraSubnetId
+    subnetId: vnet2.outputs.vnet2InfraSubnetId
     adminUsername: adminUsername
     adminPassword: adminPassword
     vmSize: vmSize
