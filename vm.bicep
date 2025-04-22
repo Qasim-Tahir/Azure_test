@@ -1,11 +1,24 @@
-param location string = resourceGroup().location
+// modules/vm.bicep
+@description('Virtual machine name')
 param vmName string
-param subnetId string
-param adminUsername string 
+
+@description('Virtual machine size')
+param vmSize string = 'Standard_B1s' // Smallest size for cost savings
+
+@description('Admin username')
+param adminUsername string = 'azureuser'
+
+@description('Admin password')
 @secure()
 param adminPassword string
-param vmSize string = 'Standard_B1s'
 
+@description('Location for resources')
+param location string = resourceGroup().location
+
+@description('Subnet ID where the VM will be placed')
+param subnetId string
+
+// Create public IP for VM access
 resource publicIP 'Microsoft.Network/publicIPAddresses@2022-11-01' = {
   name: '${vmName}-pip'
   location: location
@@ -14,58 +27,64 @@ resource publicIP 'Microsoft.Network/publicIPAddresses@2022-11-01' = {
   }
 }
 
-resource nic 'Microsoft.Network/networkInterfaces@2021-08-01' = {
+// Create network interface
+resource nic 'Microsoft.Network/networkInterfaces@2022-11-01' = {
   name: '${vmName}-nic'
   location: location
   properties: {
     ipConfigurations: [
       {
-        name: 'ipconfig1'
+        name: 'ipconfig'
         properties: {
-          subnet: { id: subnetId }
           privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress:{id:publicIP.id}
+          subnet: {
+            id: subnetId
+          }
+          publicIPAddress: {
+            id: publicIP.id
+          }
         }
       }
     ]
   }
 }
-  resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
-    name: vmName
-    location: location
-    properties: {
-      hardwareProfile: {
-        vmSize: vmSize
+
+// Create VM
+resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
+  name: vmName
+  location: location
+  properties: {
+    hardwareProfile: {
+      vmSize: vmSize
+    }
+    osProfile: {
+      computerName: vmName
+      adminUsername: adminUsername
+      adminPassword: adminPassword
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: 'Canonical'
+        offer: 'UbuntuServer'
+        sku: '18.04-LTS'
+        version: 'latest'
       }
-      osProfile: {
-        computerName: vmName
-        adminUsername: adminUsername
-        adminPassword: adminPassword
-      }
-      storageProfile: {
-        imageReference: {
-          publisher: 'Canonical'
-          offer: 'UbuntuServer'
-          sku: '18.04-LTS'
-          version: 'latest'
+      osDisk: {
+        createOption: 'FromImage'
+        managedDisk: {
+          storageAccountType: 'Standard_LRS'
         }
-        osDisk: {
-          createOption: 'FromImage'
-          managedDisk: {
-            storageAccountType: 'Standard_LRS'
-          }
-        }
-      }
-      networkProfile: {
-        networkInterfaces: [
-          {
-            id: nic.id
-          }
-        ]
       }
     }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          id: nic.id
+        }
+      ]
+    }
   }
-
+}
 
 output vmId string = vm.id
 output vmName string = vm.name

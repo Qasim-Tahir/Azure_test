@@ -1,35 +1,24 @@
-param location string = resourceGroup().location
 @secure()
 param adminPassword string
-param adminUsername string
-param vmSize string = 'Standard_B2s'
 
-@description('Name for the first VNET')
-param vnet1Name string ='vnet1'
 
-@description('Name for the second VNET')
-param vnet2Name string ='vnet2'
+param location string = resourceGroup().location
 
-@description('Address prefix for VNET 1')
-param vnet1AddressPrefix string ='10.0.0.0/16'
-
-@description('Address prefix for VNET 2')
-param vnet2AddressPrefix string ='10.1.0.0/16'
-
-@description('Infra subnet prefix for VNET 1')
+// First VNET configuration
+param vnet1Name string = 'vnet1'
+param vnet1AddressPrefix string = '10.0.0.0/16'
 param vnet1InfraSubnetPrefix string = '10.0.0.0/24'
-
-@description('Storage subnet prefix for VNET 1')
 param vnet1StorageSubnetPrefix string = '10.0.1.0/24'
 
-@description('Infra subnet prefix for VNET 2')
-param vnet2InfraSubnetPrefix string ='10.1.0.0/24'
-
-@description('Storage subnet prefix for VNET 2')
+// Second VNET configuration
+param vnet2Name string = 'vnet2'
+param vnet2AddressPrefix string = '10.1.0.0/16'
+param vnet2InfraSubnetPrefix string = '10.1.0.0/24'
 param vnet2StorageSubnetPrefix string = '10.1.1.0/24'
 
-module vnet1 './vnets.bicep' = {
-  name: 'vnet1Deployment'
+// Deploy first VNET by referencing your module
+module vnet1 './modules/vnet.bicep' = {
+  name: 'vnet1Deployment'  // This is the deployment operation name in Azure
   params: {
     vnetName: vnet1Name
     location: location
@@ -40,7 +29,7 @@ module vnet1 './vnets.bicep' = {
 }
 
 // Deploy second VNET
-module vnet2 './vnets.bicep' = {
+module vnet2 './modules/vnet.bicep' = {
   name: 'vnet2Deployment'
   params: {
     vnetName: vnet2Name
@@ -51,16 +40,12 @@ module vnet2 './vnets.bicep' = {
   }
 }
 
-
-
-
-
-// VNET PEERING
-module peering './peering.bicep' = {
-  name: 'VnetPeering'
+// Create peering from vnet1 to vnet2
+module vnet1Tovnet2Peering './modules/vnet-peering.bicep' = {
+  name: 'vnet1Tovnet2Peering'
   params: {
     sourceVnetName: vnet1Name
-    targetVnetId: vnet2.outputs.vnet2Id
+    targetVnetId: vnet2.outputs.vnetId
     peeringName: 'peering-to-vnet2'
   }
   dependsOn: [
@@ -68,41 +53,42 @@ module peering './peering.bicep' = {
   ]
 }
 
-// MONITORING (first, so we can use its output later)
-module monitoring './monitoring.bicep' = {
-  name: 'monitoringSetup'
+// Create peering from vnet2 to vnet1
+module vnet2Tovnet1Peering './modules/vnet-peering.bicep' = {
+  name: 'vnet2Tovnet1Peering'
   params: {
-    location: location
+    sourceVnetName: vnet2Name
+    targetVnetId: vnet1.outputs.vnetId
+    peeringName: 'peering-to-vnet1'
   }
+  dependsOn: [
+    vnet2
+  ]
 }
 
-// VM 1
-module vm1 './vm.bicep' = {
+module vm1 './modules/vm.bicep' = {
   name: 'vm1Deployment'
   params: {
+    vmName: 'vm-vnet1'
     location: location
-    vmName: 'vm-east-001'
-    subnetId: vnet1.outputs.vnet1InfraSubnetId
-    adminUsername: adminUsername
+    subnetId: vnet1.outputs.infraSubnetId
     adminPassword: adminPassword
-    vmSize: vmSize
   }
 }
 
-// VM 2
-module vm2 './vm.bicep' = {
+// Deploy VM in second VNET
+module vm2 './modules/vm.bicep' = {
   name: 'vm2Deployment'
   params: {
+    vmName: 'vm-vnet2'
     location: location
-    vmName: 'vm-east-002'
-    subnetId: vnet2.outputs.vnet2InfraSubnetId
-    adminUsername: adminUsername
+    subnetId: vnet2.outputs.infraSubnetId
     adminPassword: adminPassword
-    vmSize: vmSize
   }
 }
 
-module storage1 './storage.bicep' = {
+// Add storage account deployments with shorter names 
+module storage1 './modules/storage.bicep' = {
   name: 'storage1Deployment'
   params: {
     storageAccountName: 'st${uniqueString(resourceGroup().id)}1'
@@ -110,7 +96,7 @@ module storage1 './storage.bicep' = {
   }
 }
 
-module storage2 './storage.bicep' = {
+module storage2 './modules/storage.bicep' = {
   name: 'storage2Deployment'
   params: {
     storageAccountName: 'st${uniqueString(resourceGroup().id)}2'
@@ -118,4 +104,10 @@ module storage2 './storage.bicep' = {
   }
 }
 
-
+// Add after VM and storage modules
+module monitor './modules/monitor.bicep' = {
+  name: 'monitorDeployment'
+  params: {
+    location: location
+  }
+}
