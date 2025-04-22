@@ -102,15 +102,20 @@ module vm2 './vm.bicep' = {
   }
 }
 
-// STORAGE
-module storage './storage.bicep' = {
-  name: 'storageDeployment'
+module storage1 './storage.bicep' = {
+  name: 'storage1Deployment'
   params: {
+    storageAccountName: 'st${uniqueString(resourceGroup().id)}1'
     location: location
-    storageAccount1Name: 'steast001'
-    storageAccount2Name: 'steast002'
-    vnet1StorageSubnetId: vnetsModule.outputs.vnet1StorageSubnetId
-    vnet2StorageSubnetId: vnetsModule.outputs.vnet2StorageSubnetId
-    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
   }
 }
+
+module storage2 './storage.bicep' = {
+  name: 'storage2Deployment'
+  params: {
+    storageAccountName: 'st${uniqueString(resourceGroup().id)}2'
+    location: location
+  }
+}
+
+
